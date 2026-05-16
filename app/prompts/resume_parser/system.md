@@ -92,6 +92,7 @@ RULES:
 - If a section is not found, return the section object with an empty "items" array []
 - For `description` and `summary.content` fields, convert bullet points into semantic HTML using `<ul>` and `<li>` tags. You may also use `<b>` for emphasis if it appears to be a key keyword or title in the original text.
 - Extract `countryCode` as a 2-letter ISO 3166-1 alpha-2 code (e.g. US, IN, GB) from the location or phone number.
+- The `phone` field should contain ONLY the local phone number WITHOUT the country dial code (e.g., if the number is +1 123-456-7890, `countryCode` should be "US" and `phone` should be "1234567890").
 - Map the Portfolio website to `basics.url`. Map LinkedIn and GitHub links strictly to the `profiles` array under `sections`.
 
 - Extract ALL work experience, education, projects, awards, and certifications found
