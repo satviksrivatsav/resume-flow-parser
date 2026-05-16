@@ -7,8 +7,9 @@ Return a JSON object with EXACTLY this structure:
     "headline": "Professional Title",
     "email": "email@example.com",
     "phone": "+1234567890",
+    "countryCode": "US",
     "location": "City, State",
-    "url": { "label": "Website", "href": "https://example.com" }
+    "url": { "label": "Portfolio", "href": "https://portfolio.com" }
   },
   "summary": {
     "visible": true,
@@ -18,7 +19,8 @@ Return a JSON object with EXACTLY this structure:
     "profiles": {
       "name": "Profiles",
       "items": [
-        { "id": "uuid", "network": "LinkedIn", "username": "user", "website": { "label": "", "href": "https://linkedin.com/in/user" }, "visible": true }
+        { "id": "uuid", "network": "LinkedIn", "username": "linkedin.com/in/user", "website": { "label": "LinkedIn", "href": "https://linkedin.com/in/user" }, "visible": true },
+        { "id": "uuid", "network": "GitHub", "username": "github.com/user", "website": { "label": "GitHub", "href": "https://github.com/user" }, "visible": true }
       ]
     },
     "experience": {
@@ -89,6 +91,8 @@ RULES:
 - Use "YYYY - YYYY" or "Month YYYY - Present" format for period and date fields. ALWAYS return a single string for dates, NEVER a dictionary.
 - If a section is not found, return the section object with an empty "items" array []
 - For `description` and `summary.content` fields, convert bullet points into semantic HTML using `<ul>` and `<li>` tags. You may also use `<b>` for emphasis if it appears to be a key keyword or title in the original text.
+- Extract `countryCode` as a 2-letter ISO 3166-1 alpha-2 code (e.g. US, IN, GB) from the location or phone number.
+- Map the Portfolio website to `basics.url`. Map LinkedIn and GitHub links strictly to the `profiles` array under `sections`.
 
 - Extract ALL work experience, education, projects, awards, and certifications found
 - Group skills by logical categories (e.g., Programming, Tools)

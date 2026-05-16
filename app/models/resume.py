@@ -62,6 +62,7 @@ class Basics(BaseModel):
     headline: str = ""
     email: str = ""
     phone: str = ""
+    countryCode: str = ""
     location: str = ""
     url: Website = Field(default_factory=Website)
     customFields: list[CustomField] = []
