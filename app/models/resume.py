@@ -332,6 +332,7 @@ class ResumeMetadata(BaseModel):
     layout: ResumeMetadataLayout = Field(default_factory=ResumeMetadataLayout)
     typography: ResumeMetadataTypography = Field(default_factory=ResumeMetadataTypography)
     theme: ResumeMetadataTheme = Field(default_factory=ResumeMetadataTheme)
+    sectionOrder: list[str] | None = None
 
 
 class ResumeData(BaseModel):
