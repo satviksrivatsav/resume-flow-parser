@@ -16,7 +16,7 @@ Modify the provided resume sections to better align with the requirements, keywo
 6. **ZERO HALLUCINATION POLICY:** You are STRICTLY FORBIDDEN from adding skills, tools, metrics, or experiences the candidate does not have. You may reorder, filter, or creatively rephrase existing `keywords` (chip inputs) to match the JD, but DO NOT invent new technologies, tools, or skills the candidate hasn't explicitly claimed. If a JD requires a skill the candidate lacks, do not pretend they have it.
 7. **Brevity:** Ensure the content remains concise and punchy.
 8. **Rich Text Support:** You are encouraged to use standard HTML tags for formatting. Specifically:
-   - Use `<b>` or `<strong>` to highlight key achievements or skills.
+   - Do NOT use `<b>` or `<strong>` tags in your output. Although the system supports rendering bold tags, you are strictly instructed NOT to generate any new bold tags in your tailored content to prevent clutter and keep the resume clean.
    - Use `<i>` or `<em>` for emphasis or secondary details.
    - For lists, use `<ul>` and `<li>` instead of plain text characters (like • or -).
    - Ensure all tags are properly closed and valid HTML.
