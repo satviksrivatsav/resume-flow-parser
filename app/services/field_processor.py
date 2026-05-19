@@ -14,7 +14,7 @@ def process_field_request(
     originalText: str = "",
     instruction: str = "",
     tone: str = "professional",
-    format: str = "paragraph",
+    format: str | None = None,
     fullResumeData: dict[str, Any] | None = None,
 ) -> str:
     from app.utils.prompt_loader import load_prompt
@@ -26,7 +26,35 @@ def process_field_request(
     # Prepare template blocks
     instructions_block = f"Instructions: {instruction}" if instruction else ""
     tone_block = f"Tone: {tone}" if tone else ""
-    format_block = "Format as a bulleted list using <ul> and <li> tags." if format == "bullets" else "Format as a paragraph."
+    
+    # Determine the target format and construct the format block dynamically
+    if format:
+        # User explicitly selected a format - command the LLM strictly to use it
+        if format == "bullets":
+            format_block = "Format: You MUST format the output strictly as a bulleted list using <ul> and <li> tags. Ignore the formatting style of the original text."
+        else:
+            format_block = "Format: You MUST format the output strictly as a paragraph. Ignore the formatting style of the original text."
+    else:
+        # No explicit format chosen - auto-detect and preserve the original format
+        is_bullets = False
+        if action == "REWRITE" and originalText:
+            text_stripped = originalText.strip()
+            if "<li>" in text_stripped or "<ul>" in text_stripped:
+                is_bullets = True
+            else:
+                import re
+                clean_text = re.sub(r'<[^>]+>', '\n', text_stripped)
+                lines = [line.strip() for line in clean_text.split("\n") if line.strip()]
+                bullet_chars = ["•", "-", "*", "–"]
+                for line in lines:
+                    if any(line.startswith(char) for char in bullet_chars):
+                        is_bullets = True
+                        break
+        
+        if is_bullets:
+            format_block = "Format: The original text was bulleted. You MUST preserve this formatting and format the output as a bulleted list using <ul> and <li> tags."
+        else:
+            format_block = "Format: The original text was a paragraph. You MUST preserve this formatting and format the output as a paragraph."
     
     resume_context_block = ""
     if fullResumeData:

@@ -19,4 +19,4 @@ def test_load_prompt_not_found():
 def test_load_prompt_field_processor():
     # Test loading field processor prompts
     content = load_prompt("field_processor/system.md")
-    assert "professional resume writer" in content.lower()
+    assert "minimalist resume writer" in content.lower()

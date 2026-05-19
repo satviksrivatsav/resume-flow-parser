@@ -11,7 +11,7 @@ class Field(BaseModel):
     originalText: str | None = ""
     instruction: str | None = ""
     tone: Literal["professional", "casual", "confident", "friendly"] = "professional"
-    format: Literal["bullets", "paragraph"] = "paragraph"
+    format: Literal["bullets", "paragraph"] | None = None
     fullResumeData: dict[str, Any] | None = None
 
 

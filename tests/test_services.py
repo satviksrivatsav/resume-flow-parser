@@ -68,3 +68,73 @@ def test_process_field_request_rewrite(mock_load_prompt, mock_chat):
 
     assert result == "Improved text"
     mock_chat.assert_called_once()
+
+
+@patch("app.services.field_processor.client.chat_completion")
+@patch("app.utils.prompt_loader.load_prompt")
+def test_process_field_request_formatting_detection(mock_load_prompt, mock_chat):
+    mock_load_prompt.side_effect = lambda path: "Rewrite template {format_block}" if "rewrite" in path else "System prompt"
+    
+    # Mock HF response
+    mock_response = MagicMock()
+    mock_response.choices = [MagicMock()]
+    mock_response.choices[0].message.content = "Improved text"
+    mock_chat.return_value = mock_response
+
+    # Scenario 1: Original text is paragraph, format is None -> should default to paragraph
+    process_field_request(
+        action="REWRITE",
+        fieldName="Summary",
+        originalText="This is a simple paragraph.",
+        format=None
+    )
+    called_user_prompt = mock_chat.call_args[1]["messages"][1]["content"]
+    assert "Format: The original text was a paragraph. You MUST preserve this formatting and format the output as a paragraph." in called_user_prompt
+
+    mock_chat.reset_mock()
+
+    # Scenario 2: Original text contains HTML bullet list, format is None -> should detect bullets
+    process_field_request(
+        action="REWRITE",
+        fieldName="Summary",
+        originalText="<ul><li>First item</li><li>Second item</li></ul>",
+        format=None
+    )
+    called_user_prompt = mock_chat.call_args[1]["messages"][1]["content"]
+    assert "Format: The original text was bulleted. You MUST preserve this formatting and format the output as a bulleted list using <ul> and <li> tags." in called_user_prompt
+
+    mock_chat.reset_mock()
+
+    # Scenario 3: Original text has plain text bullets, format is None -> should detect bullets
+    process_field_request(
+        action="REWRITE",
+        fieldName="Summary",
+        originalText="• Led the development\n• Optimized database",
+        format=None
+    )
+    called_user_prompt = mock_chat.call_args[1]["messages"][1]["content"]
+    assert "Format: The original text was bulleted. You MUST preserve this formatting and format the output as a bulleted list using <ul> and <li> tags." in called_user_prompt
+
+    mock_chat.reset_mock()
+
+    # Scenario 4: User explicitly selected paragraph, but original was bullets -> should respect user choice
+    process_field_request(
+        action="REWRITE",
+        fieldName="Summary",
+        originalText="• Led the development\n• Optimized database",
+        format="paragraph"
+    )
+    called_user_prompt = mock_chat.call_args[1]["messages"][1]["content"]
+    assert "Format: You MUST format the output strictly as a paragraph. Ignore the formatting style of the original text." in called_user_prompt
+
+    mock_chat.reset_mock()
+
+    # Scenario 5: Original text has bullets but also introductory plain text, format is None -> should detect bullets
+    process_field_request(
+        action="REWRITE",
+        fieldName="Summary",
+        originalText="Key Highlights:\n- Developed microservices\n- Managed deployments",
+        format=None
+    )
+    called_user_prompt = mock_chat.call_args[1]["messages"][1]["content"]
+    assert "Format: The original text was bulleted. You MUST preserve this formatting and format the output as a bulleted list using <ul> and <li> tags." in called_user_prompt
