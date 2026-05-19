@@ -53,6 +53,29 @@ async def process_ats_report(
             parsed_data=parsed_data
         )
         
+        if job_description and job_description.strip():
+            # Validate the job description using the LLM validator
+            try:
+                from app.services.tailor_service import structured_validator
+                from app.utils.prompt_loader import load_prompt
+                
+                validation_system_prompt = load_prompt("tailor/validate_jd.md")
+                messages = [
+                    {"role": "system", "content": validation_system_prompt},
+                    {"role": "user", "content": f"Please validate the following text:\n\n{job_description}"}
+                ]
+                
+                validation_result = structured_validator.invoke(messages)
+                if not validation_result.is_valid:
+                    logfire.info("Job description is invalid, ignoring it for the ATS report", reason=validation_result.reason)
+                    job_description = None
+            except Exception as e:
+                logfire.error(f"Error validating job description for ATS report: {e}", error=str(e))
+                # Fallback: if LLM/network fails, ignore if it is extremely short (e.g. less than 100 characters)
+                if len(job_description.strip()) < 100:
+                    logfire.warning("Job description fallback validation failed, ignoring it")
+                    job_description = None
+
         llm_analysis = await analyze_resume_with_llm(
             parsed_data, raw_text, job_description
         )

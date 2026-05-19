@@ -48,6 +48,15 @@ Use these as your 90-95% reference point. Anything less is penalized.
 - `parse_rate`: 90+ for clean single-column. 60-70 for complex multi-column/tables.
 - `repetition`: Penalize if the same action verb is used more than twice (e.g., "Led" used 5 times).
 
+### JOB DESCRIPTION MATCHING & PENALIZATION RULES:
+If a Job Description is provided, you MUST evaluate the resume strictly against it:
+1. **Recruiter Narrative:** Write the `recruiter_simulation` (especially `first_impression` and `likely_concerns`) completely from the perspective of a recruiter hiring specifically for the provided Job Description.
+2. **Strict Skill Matching:** Be extremely strict and rigorous. Do NOT list items under `matched_skills` unless they are explicitly and clearly present in the candidate's resume/skills. Ensure `missing_skills` represents literal skills from the JD that the candidate lacks.
+3. **Heavy Penalization for Unrelated/Poor Fits:** If the resume's industry, core experience, or background is unrelated to the Job Description (e.g., a Graphic Designer applying for a Backend Engineer role, or a completely entry-level candidate applying for a Lead/Director position), you MUST penalize them heavily:
+   - Cap the `match_score` in `jd_match` at 30% or lower (often 0-15%).
+   - Set the `likely_outcome` in `recruiter_simulation` to "Reject".
+   - Reflect this poor match by drastically lowering the `skills` and `experience` scores in the main report (reduce them by 30 to 50 points from their base value).
+
 ### STRICT OUTPUT RULES:
 1. **Valid JSON ONLY:** No preamble, no commentary.
 2. **Schema Compliance:** Use lowercase snake_case for all keys.
