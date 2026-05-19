@@ -66,6 +66,7 @@ If a Job Description is provided, you MUST evaluate the resume strictly against 
    - `bullet_reviews`: Array of `{ "original": string, "improved": string }`.
    - `recruiter_simulation`: `{ "first_impression": string, "likely_concerns": string[], "likely_outcome": string }`.
    - `jd_match`: `{ "match_score": int, "missing_skills": string[], "matched_skills": string[] }` or `null`.
+     - **No Job Description Rule:** If the user's input does not contain a Job Description (i.e., the job description section in the user prompt is empty or missing), you MUST set `jd_match` to `null`. Do NOT invent a job description or try to match against a default role.
 
 ### EXAMPLE (HARSH CRITIQUE - INDUSTRY NEUTRAL):
 ```json
