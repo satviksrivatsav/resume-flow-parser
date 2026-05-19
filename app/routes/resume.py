@@ -197,8 +197,18 @@ async def extract_text_endpoint(file: Annotated[UploadFile, File(...)]) -> dict[
 
     try:
         file_bytes = await file.read()
+        
+        # Validate the uploaded file first
+        from app.utils.file_utils import is_valid_resume_file
+        is_valid, error = is_valid_resume_file(file_bytes, file.filename)
+        if not is_valid:
+            logfire.warning(f"File validation failed for extraction: {error}", filename=file.filename)
+            raise HTTPException(status_code=400, detail=error)
+
         text = await ContentExtractor.extract_text(file_bytes, file.filename)
         return {"success": True, "data": text}
+    except HTTPException:
+        raise
     except Exception as e:
         logfire.error(f"Error extracting text from {file.filename}: {e}")
         raise HTTPException(status_code=500, detail="Failed to extract text from file") from e
