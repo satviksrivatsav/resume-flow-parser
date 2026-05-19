@@ -138,3 +138,44 @@ def test_process_field_request_formatting_detection(mock_load_prompt, mock_chat)
     )
     called_user_prompt = mock_chat.call_args[1]["messages"][1]["content"]
     assert "Format: The original text was bulleted. You MUST preserve this formatting and format the output as a bulleted list using <ul> and <li> tags." in called_user_prompt
+
+
+@pytest.mark.asyncio
+async def test_tailor_resume_invalid_jd():
+    from app.services.tailor_service import tailor_resume
+    from app.models.resume import ResumeData
+
+    resume_data = ResumeData(
+        basics={"name": "John Doe", "email": "john@example.com", "phone": "", "location": "", "url": {"label": "", "href": ""}, "customFields": []},
+        summary={"content": "Experienced developer", "visible": True},
+        sections={}
+    )
+
+    with pytest.raises(ValueError, match="The provided text does not appear to be a valid job description."):
+        await tailor_resume(resume_data, "Invalid short JD text")
+
+
+@pytest.mark.asyncio
+async def test_tailor_resume_user_invalid_jd():
+    from app.services.tailor_service import tailor_resume
+    from app.models.resume import ResumeData
+
+    resume_data = ResumeData(
+        basics={"name": "John Doe", "email": "john@example.com", "phone": "", "location": "", "url": {"label": "", "href": ""}, "customFields": []},
+        summary={"content": "Experienced developer", "visible": True},
+        sections={}
+    )
+
+    invalid_jd = (
+        "3 Tips to Make the 8B Approach ViableEnforce Max Tokens = 50: "
+        "Since you only need a tiny JSON object back, cap the max_tokens parameter on the API call. "
+        "This prevents the model from rambling and keeps your latency as low as possible."
+        "Use JSON Mode / Structured Outputs: Tools like Ollama, vLLM, or Groq allow you to enforce a JSON schema. "
+        "Use this so your backend code can safely parse the response (response.is_valid) without crashing."
+        "Set Temperature to 0: You want completely predictable, deterministic validation."
+        "Would you like help writing the Python or Node.js code to process this JSON validation pipeline, "
+        "or should we look into optimizing the prompt for your exact business use case?"
+    )
+
+    with pytest.raises(ValueError, match="The provided text does not appear to be a valid job description."):
+        await tailor_resume(resume_data, invalid_jd)

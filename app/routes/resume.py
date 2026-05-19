@@ -32,6 +32,9 @@ async def tailor_resume_endpoint(request: TailorRequest) -> dict[str, Any]:
             sections_to_tailor=request.sections_to_tailor
         )
         return {"success": True, "data": result}
+    except ValueError as e:
+        logfire.warning(f"Tailoring validation failed: {e}", error=str(e))
+        raise HTTPException(status_code=400, detail=str(e)) from e
     except Exception as e:
         logfire.error(f"Internal error during tailoring: {e}", error=str(e))
         raise HTTPException(status_code=500, detail="Internal server error during tailoring") from e

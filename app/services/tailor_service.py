@@ -7,11 +7,25 @@ from app.models.resume import ResumeData
 from app.models.tailor import TailoredSection, TailorResponse
 from app.utils.prompt_loader import load_prompt
 
+from pydantic import BaseModel, Field
+
 # Initialize the Langchain LLM Client
 tailor_llm = ChatGroq(
     model="llama-3.3-70b-versatile",
     temperature=0.3  # Slightly higher temperature for creative rephrasing
 )
+
+class JDValidation(BaseModel):
+    is_valid: bool = Field(description="True if the text is a valid job description or contains details of a job role, False otherwise.")
+    reason: str = Field(description="Brief reason for the validation result.")
+
+validator_llm = ChatGroq(
+    model="llama-3.1-8b-instant",
+    temperature=0.0,
+    max_tokens=150
+)
+
+structured_validator = validator_llm.with_structured_output(JDValidation)
 
 def merge_tailored_section(section_id: str, original: dict, tailored: dict) -> dict:
     """Strictly merge only allowed description/content fields from the AI's response."""
@@ -54,6 +68,31 @@ async def tailor_resume(
     """
     Tailor specific resume sections based on a job description.
     """
+    # Use LLM power to validate the job description
+    try:
+        validation_system_prompt = load_prompt("tailor/validate_jd.md")
+        messages = [
+            {"role": "system", "content": validation_system_prompt},
+            {"role": "user", "content": f"Please validate the following text:\n\n{job_description}"}
+        ]
+        
+        # Invoke the llama-3.1-8b-instant validator
+        validation_result = structured_validator.invoke(messages)
+        logfire.info("Job description LLM validation outcome", is_valid=validation_result.is_valid, reason=validation_result.reason)
+        
+        if not validation_result.is_valid:
+            logfire.warning(f"Job description validation failed: {validation_result.reason}")
+            raise ValueError("The provided text does not appear to be a valid job description.")
+            
+    except ValueError:
+        raise
+    except Exception as e:
+        logfire.error(f"Error during job description LLM validation: {e}", error=str(e))
+        # Simple length fallback in case of LLM API issues to keep the service resilient
+        if not job_description or len(job_description.strip()) < 100:
+            logfire.warning("Job description fallback validation failed")
+            raise ValueError("The provided text does not appear to be a valid job description.")
+
     with logfire.span("tailor_resume", sections=sections_to_tailor):
         sections_to_process = {}
         
