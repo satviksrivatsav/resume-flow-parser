@@ -1,11 +1,26 @@
 import logfire
 from typing import Any
-from huggingface_hub import InferenceClient
+from langchain_groq import ChatGroq
+from functools import lru_cache
 
 
 from app.core.config import settings
 
-client = InferenceClient(api_key=settings.HF_TOKEN)
+
+@lru_cache
+def _get_groq_client() -> ChatGroq:
+    """Lazily construct and cache the Groq ChatGroq client.
+
+    Raises a ValueError with a clear message if the `GROQ_API_KEY` is not configured.
+    """
+    if not settings.GROQ_API_KEY:
+        raise ValueError("Groq API key not configured. Set GROQ_API_KEY in environment.")
+    return ChatGroq(
+        model="llama-3.3-70b-versatile",
+        temperature=0.7,
+        max_tokens=1024,
+        groq_api_key=settings.GROQ_API_KEY,
+    )
 
 
 def process_field_request(
@@ -92,25 +107,31 @@ def process_field_request(
 
 
 
-    # Call the HuggingFace Inference API
+    # Call the Groq API via LangChain ChatGroq
     try:
-        chat_completion = client.chat_completion(
-            model="Qwen/Qwen2.5-7B-Instruct",
-            messages=[
+        client = _get_groq_client()
+    except ValueError as e:
+        # Missing API key — log a warning without sensitive data and surface a clear error
+        logfire.warning("Groq client not configured", detail=str(e))
+        raise ValueError("Groq backend not configured. Contact the administrator.") from e
+
+    try:
+        chat_completion = client.invoke(
+            [
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": user_prompt},
-            ],
-            temperature=0.7,
-            max_tokens=1024,
+            ]
         )
 
-        content = chat_completion.choices[0].message.content
+        content = getattr(chat_completion, "content", None)
+
         if content is None:
-            logfire.warning("HF Inference API returned empty content")
+            logfire.warning("Groq API returned empty content")
             return ""
-        
+
         logfire.info(f"Successfully processed {action} for {fieldName}")
         return content.strip()
     except Exception as e:
-        logfire.error(f"HF Inference API call failed: {e}", error=str(e))
-        raise e
+        # Avoid logging raw exception strings which may contain API keys or tokens.
+        logfire.error("Groq API call failed", error_type=type(e).__name__)
+        raise RuntimeError("Error while calling the Groq API") from e

@@ -6,8 +6,6 @@ from pydantic_settings import BaseSettings
 class Settings(BaseSettings):
     """Application settings loaded from environment variables."""
 
-    HF_TOKEN: str = ""
-    HF_TOKEN_ALT: str = ""
     GEMINI_API_KEY: str = ""
     GROQ_API_KEY: str = ""
     LOGFIRE_TOKEN: str = ""

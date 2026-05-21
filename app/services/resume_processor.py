@@ -22,6 +22,10 @@ vision_llm = ChatGroq(
     temperature=0.0
 )
 
+# Limits for LLM interactions to prevent very long-running requests
+MAX_INPUT_CHARS = 20000
+LLM_TIMEOUT_SECONDS = 60
+
 # Semaphore to limit concurrent vision requests (prevents 429 errors)
 vision_semaphore = asyncio.Semaphore(3)
 
@@ -86,7 +90,18 @@ async def structure_resume_with_llm(raw_text: str) -> ResumeData:
     with logfire.span("structure_resume_with_llm", text_length=len(raw_text)):
         system_prompt = load_prompt("resume_parser/system.md")
         user_prompt_template = load_prompt("resume_parser/user.md")
-        user_prompt = user_prompt_template.format(raw_text=raw_text)
+
+        # Guard against extremely large inputs from PDFs/OCR that slow the model.
+        input_text = raw_text
+        if len(raw_text) > MAX_INPUT_CHARS:
+            logfire.warning(
+                "Raw text too long; truncating before LLM call",
+                original_length=len(raw_text),
+                truncated_to=MAX_INPUT_CHARS,
+            )
+            input_text = raw_text[:MAX_INPUT_CHARS]
+
+        user_prompt = user_prompt_template.format(raw_text=input_text)
 
         messages = [
             {"role": "system", "content": system_prompt},
@@ -94,9 +109,21 @@ async def structure_resume_with_llm(raw_text: str) -> ResumeData:
         ]
 
         try:
-            response = await structured_parser.ainvoke(messages)
+            # Bound the LLM call so requests don't hang indefinitely.
+            response = await asyncio.wait_for(
+                structured_parser.ainvoke(messages), timeout=LLM_TIMEOUT_SECONDS
+            )
             logfire.info("LLM successfully structured resume data")
             return response
+        except asyncio.TimeoutError:
+            logfire.error(
+                "LLM call timed out",
+                timeout_seconds=LLM_TIMEOUT_SECONDS,
+                input_length=len(input_text),
+                )
+            raise ValueError(
+                f"LLM call timed out after {LLM_TIMEOUT_SECONDS} seconds"
+            )
         except Exception as e:
             logfire.error(f"LLM API call failed: {e}", error=str(e))
             raise ValueError(f"LLM API call failed: {e}") from e
