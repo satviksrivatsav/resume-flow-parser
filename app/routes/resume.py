@@ -106,7 +106,7 @@ async def field_action(request: Field) -> dict[str, Any]:
         return {"success": True, "data": response}
     except Exception as e:
         logfire.error(f"Failed to process field {request.fieldName}: {e}", error=str(e))
-        raise HTTPException(status_code=500, detail="Internal server error during field processing") from e
+        raise HTTPException(status_code=500, detail=str(e)) from e
 
 
 class AtsJsonRequest(BaseModel):
