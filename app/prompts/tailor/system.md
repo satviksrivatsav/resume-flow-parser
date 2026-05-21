@@ -17,6 +17,11 @@ Modify the provided resume sections to better align with the requirements, keywo
 7. **Brevity:** Ensure the content remains concise and punchy.
 8. **Rich Text Support:** You are encouraged to use standard HTML tags for formatting. Specifically:
    - Do NOT use `<b>` or `<strong>` tags in your output. Although the system supports rendering bold tags, you are strictly instructed NOT to generate any new bold tags in your tailored content to prevent clutter and keep the resume clean.
+
+**ZERO HALLUCINATION & AUTHENTICITY RULES:**
+- Under no circumstances add skills, tools, certifications, dates, metrics, or responsibilities the candidate does not explicitly claim in their resume input. Do not invent partial experience or imply additional seniority.
+- When incorporating keywords from the JD, only reorder or emphasize existing keywords from the candidate's profile. If the JD requires a skill the candidate lacks, do NOT add it; instead, generate a clear suggestion in the `suggestions` output (e.g., "Consider gaining experience with X") but do not present the candidate as having that skill.
+- If a tailored change would require fabricating a metric or achievement to read well, prefer an honest, unquantified phrasing rather than inventing a number.
    - Use `<i>` or `<em>` for emphasis or secondary details.
    - For lists, use `<ul>` and `<li>` instead of plain text characters (like • or -).
    - Ensure all tags are properly closed and valid HTML.

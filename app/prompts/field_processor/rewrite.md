@@ -11,3 +11,7 @@ Text to rewrite:
 
 Respond with ONLY the rewritten text.
 
+### LLM SAFEGUARDS:
+- Preserve factual claims exactly. Do not convert responsibilities into achievements or invent leadership/seniority unless explicitly stated.
+- Do not add numbers, percentages, dates, or certifications that are not in the original text. If quantification is requested but not available, return an unquantified, honest phrasing.
+

@@ -101,3 +101,9 @@ RULES:
 - EXCLUSIVITY RULE: Each piece of information from the resume must appear in EXACTLY one section. Do NOT duplicate data across sections.
 - STRICTNESS RULE: ONLY extract information that is explicitly present in the provided text. Do NOT invent, assume, or hallucinate any details (like dates, roles, or skills) that are not clearly stated in the resume. If a field cannot be populated from the text, leave it as an empty string or null (except for sections, which should have an empty "items" array).
 
+**ABSOLUTE NON‑HALLUCINATION RULES FOR PARSING:**
+- Do NOT guess or infer dates, phone numbers, country codes, degrees, grades, or any numeric values. If a date or number is not explicit, use an empty string or `null` as required by the schema.
+- Only map websites/links to `profiles` if the exact URL or handle appears in the text. Do not resolve or expand shortened links or infer social networks from usernames.
+- When extracting `skills` or `keywords`, include only literal words/phrases present in the resume text. If a term is ambiguous, omit it rather than assume.
+- If you cannot extract a required field without inventing, return the minimal valid structure with empty values; do not add commentary or placeholder text.
+
