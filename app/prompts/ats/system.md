@@ -63,6 +63,17 @@ If a Job Description is provided, you MUST evaluate the resume strictly against 
    - Set the `likely_outcome` in `recruiter_simulation` to "Reject".
    - Reflect this poor match by drastically lowering the `skills` and `experience` scores in the main report (reduce them by 30 to 50 points from their base value).
 
+   **STRONG MISMATCH HANDLING (MANDATORY):**
+   - When the candidate's industry/role is clearly unrelated to the JD, the model MUST make the overall report unambiguously negative. In addition to capping `jd_match.match_score` and setting `recruiter_simulation.likely_outcome` to "Reject":
+     - Force the following `scores` to low values (prefer values between 0 and 25 depending on severity): `skills`, `experience`, `impact`, `keywords`, `formatting`, `readability`, `parse_rate`, `repetition`, `grammar`.
+     - Do NOT leave other score fields high to hide the mismatch; the composite picture must clearly indicate a poor fit.
+     - Add explicit entries to `ats_warnings` and `risks` explaining the mismatch (for example: "Candidate background is in X but JD requires Y; core skills do not overlap").
+     - In `suggestions`, recommend constructive next steps (e.g., "Consider applying to roles in X or gaining experience with Y").
+   - These forced adjustments are REQUIRED when the mismatch is obvious from literal text (titles, skills, or industry terms). Do NOT attempt to "balance" the report to make it look better.
+
+   **EXAMPLE DECISION LOGIC (for the model):**
+   - If detected industry_of_candidate != industry_of_jd OR none of the JD's literal required skills appear in candidate's resume, treat as "clear mismatch" and apply Strong Mismatch Handling.
+
 ### STRICT OUTPUT RULES:
 1. **Valid JSON ONLY:** No preamble, no commentary.
 2. **Schema Compliance:** Use lowercase snake_case for all keys.
