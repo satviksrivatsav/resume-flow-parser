@@ -133,5 +133,7 @@ def process_field_request(
         return content.strip()
     except Exception as e:
         # Avoid logging raw exception strings which may contain API keys or tokens.
-        logfire.error("Groq API call failed", error_type=type(e).__name__, error_message=str(e))
-        raise RuntimeError(f"Error while calling the Groq API: {str(e)}") from e
+        cause = getattr(e, "__cause__", None)
+        cause_str = f" Cause: {cause} ({type(cause).__name__})" if cause else ""
+        logfire.error("Groq API call failed", error_type=type(e).__name__, error_message=f"{e}{cause_str}")
+        raise RuntimeError(f"Error while calling the Groq API: {str(e)}{cause_str}") from e
