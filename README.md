@@ -7,6 +7,6 @@ Detailed technical flows for the **Resume Parser**, **AI Tailor**, and **ATS Opt
 ---
 
 ## Quick Links
-- [🧠 Intelligence Engine](../README.md#intelligence-engine)
-- [🛠️ Integrated Tech Stack](../README.md#integrated-tech-stack)
-- [🚀 Unified Quick Start](../README.md#unified-quick-start)
+- [Deep Intelligence Engine 🧠](../README.md#deep-intelligence-engine-)
+- [Integrated Tech Stack 🛠️](../README.md#integrated-tech-stack-%EF%B8%8F)
+- [Unified Quick Start 🚀](../README.md#unified-quick-start-)
